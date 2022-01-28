@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model groups {
+  group_id     Int            @id @default(autoincrement())
+  group_name   String         @db.VarChar(255)
+  created_at   DateTime       @default(now()) @db.Timestamp(6)
+  updated_at   DateTime       @default(now()) @db.Timestamp(6)
+  deleted_at   DateTime?      @db.Timestamp(6)
+  residentials residentials[]
+}
+
+model residences {
+  residence_id             Int          @id @default(autoincrement())
+  residence_residential_id Int
+  residence_number         Int
+  residence_address        String       @db.VarChar(255)
+  created_at               DateTime     @default(now()) @db.Timestamp(6)
+  updated_at               DateTime     @default(now()) @db.Timestamp(6)
+  deleted_at               DateTime?    @db.Timestamp(6)
+  residentials             residentials @relation(fields: [residence_residential_id], references: [residential_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_d77bd38201d6ebda6a4d4c3c51a")
+  users                    users[]
+
+  @@index([residence_residential_id], map: "FK_d77bd38201d6ebda6a4d4c3c51a")
+}
+
+model residentials {
+  residential_id       Int          @id @default(autoincrement())
+  residential_group_id Int
+  residential_name     String       @db.VarChar(255)
+  created_at           DateTime     @default(now()) @db.Timestamp(6)
+  updated_at           DateTime     @default(now()) @db.Timestamp(6)
+  deleted_at           DateTime?    @db.Timestamp(6)
+  groups               groups       @relation(fields: [residential_group_id], references: [group_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_d1d93e4766ddfd8b28fe75d602b")
+  residences           residences[]
+
+  @@index([residential_group_id], map: "FK_d1d93e4766ddfd8b28fe75d602b")
+}
+
+model test {
+  id Int @id
+}
+
+model users {
+  user_id            Int        @id @default(autoincrement())
+  user_residence_id  Int
+  user_complete_name String     @db.VarChar(255)
+  user_name          String     @db.VarChar(255)
+  user_password      String     @db.VarChar(255)
+  user_phone         String     @db.VarChar(255)
+  user_rol           String     @db.VarChar(255)
+  user_active        Int        @db.TinyInt
+  created_at         DateTime   @default(now()) @db.Timestamp(6)
+  updated_at         DateTime   @default(now()) @db.Timestamp(6)
+  deleted_at         DateTime?  @db.Timestamp(6)
+  residences         residences @relation(fields: [user_residence_id], references: [residence_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_c1bfd1d4635db661f68f8eebd29")
+  visits             visits[]
+
+  @@index([user_residence_id], map: "FK_c1bfd1d4635db661f68f8eebd29")
+}
+
+model visits {
+  visit_id           Int       @id @default(autoincrement())
+  visit_user_id      Int
+  visit_start_date   DateTime  @db.Date
+  visit_end_date     DateTime  @db.Date
+  visit_start_time   DateTime  @db.Time(0)
+  visit_end_time     DateTime  @db.Time(0)
+  visit_identifier   String    @db.VarChar(255)
+  visit_visitor_name String    @db.VarChar(255)
+  visit_completed    Int       @db.TinyInt
+  created_at         DateTime  @default(now()) @db.Timestamp(6)
+  updated_at         DateTime  @default(now()) @db.Timestamp(6)
+  deleted_at         DateTime? @db.Timestamp(6)
+  users              users     @relation(fields: [visit_user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_c5737cad1c86f01d4796efb48d0")
+
+  @@index([visit_user_id], map: "FK_c5737cad1c86f01d4796efb48d0")
+}
