@@ -1,6 +1,7 @@
 const functions = require("firebase-functions");
 const PrismaClient = require('@prisma/client').PrismaClient
 const prisma = new PrismaClient()
+const cors = require('cors')({origin: true});
 
 // // Create and Deploy Your First Cloud Functions
 // // https://firebase.google.com/docs/functions/write-firebase-functions
@@ -10,8 +11,10 @@ const prisma = new PrismaClient()
 //   response.send("Hello from Firebase!");
 // });
 
-exports.preLogin = functions.https.onRequest(async(request, response) => {
-    const body = request.body
+exports.preLogin = functions.https.onRequest(async(req, res) => {
+  cors(req, res, async(err) => {
+    if (req.method == "options") res.end()
+    const body = req.body
 
     try {
     const user = await prisma.users.findFirst({
@@ -26,19 +29,22 @@ exports.preLogin = functions.https.onRequest(async(request, response) => {
         }
       })
       if (user) {
-        response.send({status: 'success', data: user})
+        res.send({status: 'success', data: user})
       } else {
-        response.send({status: 'error', data: { message: 'no user found' }})
+        res.send({status: 'error', data: { message: 'no user found' }})
       }
       
     }catch (err) {
         console.log(err)
-        response.send({status: 'error', data: { message: 'something was wrong' }})
+        res.send({status: 'error', data: { message: 'something was wrong' }})
     }
+  })
 })
 
-exports.login = functions.https.onRequest(async(request, response) => {
-    const body = request.body
+exports.login = functions.https.onRequest(async(req, res) => {
+  cors(req, res, async(err) => {
+    if (req.method == "options") res.end()
+    const body = req.body
 
     try {
     const user = await prisma.users.findFirst({
@@ -49,13 +55,14 @@ exports.login = functions.https.onRequest(async(request, response) => {
       })
 
       if (user) {
-        response.send({status: 'success', data: user})
+        res.send({status: 'success', data: user})
       } else {
-        response.send({status: 'error', data: { message: 'no user found' }})
+        res.send({status: 'error', data: { message: 'no user found' }})
       }
       
     }catch (err) {
         console.log(err)
-        response.send({status: 'error', data: { message: 'something was wrong' }})
+        res.send({status: 'error', data: { message: 'something was wrong' }})
     }
+  })
 })
