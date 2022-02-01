@@ -20,6 +20,7 @@ exports.preLogin = functions.https.onRequest(async(req, res) => {
     const user = await prisma.users.findFirst({
         where: {
           user_phone: body.phone,
+          deleted_at: null
         },
         select: {
             user_phone: true,
@@ -50,7 +51,8 @@ exports.login = functions.https.onRequest(async(req, res) => {
     const user = await prisma.users.findFirst({
         where: {
           user_phone: body.phone,
-          user_password: body.password
+          user_password: body.password,
+          deleted_at: null
         },
       })
 
