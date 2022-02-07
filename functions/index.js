@@ -1,22 +1,12 @@
-const functions = require("firebase-functions");
 const PrismaClient = require('@prisma/client').PrismaClient
 const prisma = new PrismaClient()
-const cors = require('cors')({origin: true});
+var express = require('express')
+var app = express()
 
-// // Create and Deploy Your First Cloud Functions
-// // https://firebase.google.com/docs/functions/write-firebase-functions
-//
-// exports.helloWorld = functions.https.onRequest((request, response) => {
-//   functions.logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
-
-exports.preLogin = functions.https.onRequest(async(req, res) => {
-  cors(req, res, async(err) => {
-    if (req.method == "options") res.end()
-    const body = req.body
-
-    try {
+app.post('/preLogin', async (req, res) => {
+  const body = req
+  console.log(body)
+  try {
     const user = await prisma.users.findFirst({
         where: {
           user_phone: body.phone,
@@ -39,13 +29,10 @@ exports.preLogin = functions.https.onRequest(async(req, res) => {
         console.log(err)
         res.send({status: 'error', data: { message: 'something was wrong' }})
     }
-  })
 })
 
-exports.login = functions.https.onRequest(async(req, res) => {
-  cors(req, res, async(err) => {
-    if (req.method == "options") res.end()
-    const body = req.body
+app.post('/login', async (req, res) => {
+  const body = req.body
 
     try {
     const user = await prisma.users.findFirst({
@@ -66,5 +53,8 @@ exports.login = functions.https.onRequest(async(req, res) => {
         console.log(err)
         res.send({status: 'error', data: { message: 'something was wrong' }})
     }
-  })
+})
+
+app.listen(3001, function () {
+  console.log('CORS-enabled web server listening on port 3001')
 })
