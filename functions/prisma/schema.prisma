@@ -16,14 +16,27 @@ model groups {
   residentials residentials[]
 }
 
+model logs {
+  log_id      Int       @id @default(autoincrement())
+  log_user_id Int
+  log_action  String    @db.VarChar(255)
+  log_table   String    @db.VarChar(255)
+  log_before  String    @db.VarChar(255)
+  log_after   String    @db.VarChar(255)
+  created_at  DateTime  @default(now()) @db.Timestamp(6)
+  updated_at  DateTime  @default(now()) @db.Timestamp(6)
+  deleted_at  DateTime? @db.Timestamp(6)
+}
+
 model residences {
   residence_id             Int          @id @default(autoincrement())
   residence_residential_id Int
-  residence_number         Int
   residence_address        String       @db.VarChar(255)
   created_at               DateTime     @default(now()) @db.Timestamp(6)
   updated_at               DateTime     @default(now()) @db.Timestamp(6)
   deleted_at               DateTime?    @db.Timestamp(6)
+  residence_active         Int          @db.TinyInt
+  residence_number         String       @db.VarChar(255)
   residentials             residentials @relation(fields: [residence_residential_id], references: [residential_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_d77bd38201d6ebda6a4d4c3c51a")
   users                    users[]
 
@@ -43,24 +56,30 @@ model residentials {
   @@index([residential_group_id], map: "FK_d1d93e4766ddfd8b28fe75d602b")
 }
 
-model test {
-  id Int @id
+model special_visits {
+  special_visit_id      Int       @id @default(autoincrement())
+  special_visit_name    String    @db.VarChar(255)
+  special_visit_vehicle String    @db.VarChar(255)
+  created_at            DateTime  @default(now()) @db.Timestamp(6)
+  updated_at            DateTime  @default(now()) @db.Timestamp(6)
+  deleted_at            DateTime? @db.Timestamp(6)
 }
 
 model users {
-  user_id            Int        @id @default(autoincrement())
-  user_residence_id  Int
-  user_complete_name String     @db.VarChar(255)
-  user_name          String     @db.VarChar(255)
-  user_password      String     @db.VarChar(255)
-  user_phone         String     @db.VarChar(255)
-  user_rol           String     @db.VarChar(255)
-  user_active        Int        @db.TinyInt
-  created_at         DateTime   @default(now()) @db.Timestamp(6)
-  updated_at         DateTime   @default(now()) @db.Timestamp(6)
-  deleted_at         DateTime?  @db.Timestamp(6)
-  residences         residences @relation(fields: [user_residence_id], references: [residence_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_c1bfd1d4635db661f68f8eebd29")
-  visits             visits[]
+  user_id             Int        @id @default(autoincrement())
+  user_residence_id   Int
+  user_complete_name  String     @db.VarChar(255)
+  user_name           String     @db.VarChar(255)
+  user_password       String     @db.VarChar(255)
+  user_phone          String     @db.VarChar(255)
+  user_rol            String     @db.VarChar(255)
+  user_active         Int        @db.TinyInt
+  created_at          DateTime   @default(now()) @db.Timestamp(6)
+  updated_at          DateTime   @default(now()) @db.Timestamp(6)
+  deleted_at          DateTime?  @db.Timestamp(6)
+  user_residential_id Int?
+  residences          residences @relation(fields: [user_residence_id], references: [residence_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_c1bfd1d4635db661f68f8eebd29")
+  visits              visits[]
 
   @@index([user_residence_id], map: "FK_c1bfd1d4635db661f68f8eebd29")
 }
@@ -69,9 +88,9 @@ model visits {
   visit_id           Int       @id @default(autoincrement())
   visit_user_id      Int
   visit_start_date   DateTime  @db.Date
-  visit_end_date     DateTime  @db.Date
-  visit_start_time   DateTime  @db.Time(0)
-  visit_end_time     DateTime  @db.Time(0)
+  visit_end_date     DateTime? @db.Date
+  visit_start_time   DateTime? @db.Time(0)
+  visit_end_time     DateTime? @db.Time(0)
   visit_identifier   String    @db.VarChar(255)
   visit_visitor_name String    @db.VarChar(255)
   visit_completed    Int       @db.TinyInt
