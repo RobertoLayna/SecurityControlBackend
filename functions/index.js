@@ -1,25 +1,26 @@
-const functions = require("firebase-functions");
 const PrismaClient = require('@prisma/client').PrismaClient
 const prisma = new PrismaClient()
-const cors = require('cors')({origin: true});
+var express = require('express')
+var app = express()
+const cors = require('cors')
+var bodyParser = require('body-parser')
 
-// // Create and Deploy Your First Cloud Functions
-// // https://firebase.google.com/docs/functions/write-firebase-functions
-//
-// exports.helloWorld = functions.https.onRequest((request, response) => {
-//   functions.logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+app.use(cors({
+  origin: '*'
+}));
 
-exports.preLogin = functions.https.onRequest(async(req, res) => {
-  cors(req, res, async(err) => {
-    if (req.method == "options") res.end()
-    const body = req.body
+app.use(bodyParser.json())
 
-    try {
+app.post('/app/preLogin', cors() ,async (req, res, next) => {
+  const body = req.body
+  console.log(body)
+  try {
     const user = await prisma.users.findFirst({
         where: {
-          user_phone: body.phone,
+            AND: [{
+                user_phone: {equals: body.phone}},{
+                deleted_at: {equals: null}}
+            ]
         },
         select: {
             user_phone: true,
@@ -33,24 +34,22 @@ exports.preLogin = functions.https.onRequest(async(req, res) => {
       } else {
         res.send({status: 'error', data: { message: 'no user found' }})
       }
-      
+
     }catch (err) {
         console.log(err)
         res.send({status: 'error', data: { message: 'something was wrong' }})
     }
-  })
 })
 
-exports.login = functions.https.onRequest(async(req, res) => {
-  cors(req, res, async(err) => {
-    if (req.method == "options") res.end()
-    const body = req.body
+app.post('/app/login', cors() ,async (req, res, next) => {
+  const body = req
 
     try {
     const user = await prisma.users.findFirst({
         where: {
           user_phone: body.phone,
-          user_password: body.password
+          user_password: body.password,
+          deleted_at: null
         },
       })
 
@@ -59,10 +58,13 @@ exports.login = functions.https.onRequest(async(req, res) => {
       } else {
         res.send({status: 'error', data: { message: 'no user found' }})
       }
-      
+
     }catch (err) {
         console.log(err)
         res.send({status: 'error', data: { message: 'something was wrong' }})
     }
-  })
+})
+
+app.listen(3001, function () {
+  console.log('CORS-enabled web server listening on port 3001')
 })
