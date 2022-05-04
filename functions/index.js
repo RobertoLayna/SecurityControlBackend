@@ -71,8 +71,7 @@ app.post("/app/login", cors(), async (req, res, next) => {
     })
 
     console.log('user', user)
-    if (user) {
-      const residence = await prisma.residences.findFirst({
+    const residence = await prisma.residences.findFirst({
         select: {
           residence_active: true,
         },
@@ -80,10 +79,53 @@ app.post("/app/login", cors(), async (req, res, next) => {
           AND: [{ residence_id: user.user_residence_id }, { deleted_at: null }],
         },
       })
+    if (user) {
       if (residence.residence_active > 0)
         res.send({ status: "success", data: user })
       else
         res.send({ status: "denied", data: { message: "Residence inactive" } })
+    } else {
+      res.send({ status: "error", data: { message: "no user found" } })
+    }
+  } catch (err) {
+    console.log(err)
+    res.send({ status: "error", data: { message: "something was wrong" } })
+  }
+})
+
+app.post("/app/updatePassword", cors(), async (req, res, next) => {
+  const body = req.body
+  console.log(body)
+  try {
+    const user = await prisma.users.findFirst({
+      where: {
+        AND: [
+          {
+            user_id: {
+              equals: body.id,
+            },
+          },
+          {
+            user_password: {
+              equals: body.olderPass,
+            },
+          },
+        ],
+      },
+      select: {
+        user_password: true,
+      },
+    })
+    if (user) {
+      const rs = await prisma.users.update({
+        where: {
+          user_id: body.id,
+        },
+        data: {
+          user_password: body.newPass,
+        }
+      })
+      res.send({ status: "success", data: rs })
     } else {
       res.send({ status: "error", data: { message: "no user found" } })
     }
